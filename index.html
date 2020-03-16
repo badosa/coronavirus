@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Today COVID-19 Stats</title>
+  <link href="https://visual.js.org/visual.css" rel="stylesheet" type="text/css" />
+  <script src="https://visual.js.org/lazyvisualsetup.js"></script>
+
+
+  <style>
+  body {
+    font-family: Verdana,Arial,Helvetica,sans-serif;
+    font-size: 13px;
+    margin: 10px 20px;
+  }
+  caption {
+    position: absolute;
+    left: -9999px;
+  }
+  th {
+    text-align: left;
+  }
+  .number {
+    text-align: right;
+  }
+  #visual {
+    float: left;
+  }
+  table {
+    width: 600px;
+  }
+  tr * {
+    padding: 4px 10px;
+  }
+  tr.even * {
+    background-color: #ddd;
+  }
+  </style>
+</head>
+<body>
+  <div id="visual" class="visual"></div>
+  <table>
+    <caption>Ranking of countries by today cases</caption>
+    <thead>
+      <tr>
+        <th>Country</th><th class="number">Today Cases</th><th class="number">Today Deaths</th><th class="number">Total Cases</th><th class="number">Total Deaths</th><th class="number">Fatality Rate</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+  fetch("https://corona.lmao.ninja/countries").then(function(resp){
+    resp.json().then(function(data) {
+      data.sort(function(a,b){
+        return b.todayCases - a.todayCases;
+      });
+
+      var
+        html=[],
+        tbody=document.querySelector("tbody"),
+        rank=data.filter(function(c){
+          return c.todayCases>0;
+        }),
+        chart=rank.filter(function(c){
+          return c.todayCases>100;
+        })
+      ;
+
+      rank.forEach(function(c,i){
+        var cls=i%2 ? "odd" : "even";
+
+        html.push('<tr class="'+cls+'"><td>'+c.country+'</td><td class="number">'+
+          new Intl.NumberFormat('en-US').format(c.todayCases)+
+          '</td><td class="number">'+
+          new Intl.NumberFormat('en-US').format(c.todayDeaths)+
+          '</td><td class="number">'+
+          new Intl.NumberFormat('en-US').format(c.cases)+
+          '</td><td class="number">'+
+          new Intl.NumberFormat('en-US').format(c.deaths)+
+          '</td><td class="number">'+
+          new Intl.NumberFormat('en-US').format((c.deaths*100/c.cases).toFixed(2))+
+            "%</td></tr>"
+        );
+      });
+
+      tbody.innerHTML=html.join("");
+
+      visual({
+        fixed: [600,600],
+  			lang: "en",
+        title: "Today COVID-19 Cases",
+  			autoheading: false,
+  			type: "rank",
+  			data: chart.map(function(d){ return [d.country, d.todayCases]; })
+  		});
+
+    });
+  });
+  </script>
+</body>
+</html>
