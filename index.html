@@ -205,6 +205,11 @@
 
       fetch("https://corona.lmao.ninja/countries").then(function(resp){
         resp.json().then(function(data) {
+
+          if(!data.length){
+            document.body.innerText="Sorry, I could not retrieve any data. Please, try later.";
+          }
+
           data.sort(function(a,b){
             return b.todayCases - a.todayCases;
           });
