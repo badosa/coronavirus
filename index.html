@@ -1,124 +1,244 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta charset="UTF-8">
-  <title>Today COVID-19 Stats</title>
-  <link href="https://visual.js.org/visual.css" rel="stylesheet" type="text/css" />
-  <script src="https://visual.js.org/lazyvisualsetup.js"></script>
-  <style>
-  body {
-    font-family: Verdana,Arial,Helvetica,sans-serif;
-    font-size: 13px;
-    margin: 10px 20px;
-  }
-  caption {
-    text-align: left;
-    font-weight: bold;
-  }
-  thead * {
-    background-color: #333;
-    color: #fff;
-  }
-  th {
-    text-align: left;
-  }
-  .number {
-    text-align: right;
-  }
-  #visual {
-    float: left;
-  }
-  #table {
-    height: 600px;
-    width: 600px;
-    overflow-y: scroll;
-  }
-  tr * {
-    padding: 4px 10px;
-  }
-  tr.even * {
-    background-color: #ddd;
-  }
-  tr.thou * {
-    color: brown;
-  }
-  </style>
-</head>
-<body>
-  <div id="visual" class="visual"></div>
-  <div id="table">
-    <table>
-      <caption>Ranking by today cases (countries with more than 1,000 cases in brown)</caption>
-      <thead>
-        <tr>
-          <th>Country</th><th class="number">Today Cases</th><th class="number">Today Deaths</th><th class="number">Total Cases</th><th class="number">Total Deaths</th><th class="number">Fatality Rate</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <title>Today COVID-19 Stats</title>
+    <link href="https://visual.js.org/visual.css" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <script src="https://visual.js.org/lazyvisualsetup.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
 
-  <script>
-  if(typeof fetch!=="function"){
-    window.alert("Your browser is not modern enough to display this webpage. Sorry.");
-  }
+    <style>
+      body {
+        font-family: 'Lato', sans-serif;
+        font-size: 14px;
+        margin: 10px 20px;
+      }
+      #visual {
+        float: left;
+        width: 400px;
+      }
+      #table {
+        height: 600px;
+        width: 800px;
+        overflow-y: scroll;
+      }
 
-  fetch("https://corona.lmao.ninja/countries").then(function(resp){
-    resp.json().then(function(data) {
-      data.sort(function(a,b){
-        return b.todayCases - a.todayCases;
-      });
+      caption {
+        font-size: 16px;
+        text-align: left;
+        font-weight: bold;
+      }
+      tfoot td {
+        background-color: #fafad2;
+      }
+      thead th {
+        background-color: #333;
+        color: #fff;
+        cursor: pointer;
+        padding: 10px;
+      }
+      th, td {
+        text-align: right;
+        padding: 4px 10px;
+        min-width: 95px;
+      }
 
-      var
-        html=[],
-        tbody=document.querySelector("tbody"),
-        rank=data.filter(function(c){
-          return c.todayCases>0 || c.cases>1000;
-        }),
-        chart=data.slice(0,10)
-      ;
+      tr th:first-of-type,
+      tr td:first-of-type {
+        text-align: left;
+      }
 
-      rank.forEach(function(c,i){
-        var
-          even=i%2 ? "" : "even ",
-          tho=c.cases>1000 ? "thou" : ""
-        ;
+      tr:nth-child(even) * {
+        background-color: #ddd;
+      }
 
-        html.push('<tr class="'+even+tho+'"><td>'+c.country+'</td><td class="number">'+
-          new Intl.NumberFormat('en-US').format(c.todayCases)+
-          '</td><td class="number">'+
-          new Intl.NumberFormat('en-US').format(c.todayDeaths)+
-          '</td><td class="number">'+
-          new Intl.NumberFormat('en-US').format(c.cases)+
-          '</td><td class="number">'+
-          new Intl.NumberFormat('en-US').format(c.deaths)+
-          '</td><td class="number">'+
-          new Intl.NumberFormat('en-US').format((c.deaths*100/c.cases).toFixed(2))+
-            "%</td></tr>"
-        );
-      });
+      th.sel {
+        background-color: hsla(240, 100%, 25%, 1);
+      }
+      td.sel {
+        background-color: hsla(240, 100%, 95%, 1);
+      }
 
-      tbody.innerHTML=html.join("");
+      tr:nth-child(even) .sel {
+        background-color: hsla(240, 100%, 90%, 1);
+      }
 
-
-      if(chart.length>9){
-        visual({
-          fixed: [600,600],
-    			lang: "en",
-          title: "Today COVID-19 Cases: 10 Top Countries So Far...",
-          footer: "Warning: Different countries report cases at different hours. These data vary a lot over the course of the day.",
-    			autoheading: false,
-    			type: "rank",
-    			data: chart.map(function(d){ return [d.country, d.todayCases]; })
-    		});
-      }else{
-        document.querySelector("#visual").innerHTML="There are less than 10 countries reporting cases today. Take into account that different countries might report cases at different hours.";
+      tr.thou * {
+        color: brown;
       }
 
 
-    });
-  });
-  </script>
-</body>
+      th.sel .arrow {
+        opacity: 1;
+      }
+
+      .arrow {
+        display: inline-block;
+        vertical-align: middle;
+        width: 0;
+        height: 0;
+        margin-left: 5px;
+        opacity: 0.66;
+      }
+
+      .arrow.asc {
+        border-left: 4px solid transparent;
+        border-right: 4px solid transparent;
+        border-bottom: 4px solid #fff;
+      }
+
+      .arrow.dsc {
+        border-left: 4px solid transparent;
+        border-right: 4px solid transparent;
+        border-top: 4px solid #fff;
+      }
+    </style>
+
+    <script type="text/x-template" id="grid">
+      <table>
+        <caption>{{title}}</caption>
+        <thead>
+          <tr>
+            <th v-for="key in columns"
+              @click="sortBy(key)"
+              :class="{ sel: sortKey == key || def == key }">
+              {{ key | labelize }}
+              <span class="arrow" :class="sortOrders[key] > 0 ? 'asc' : 'dsc'">
+              </span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="entry in sortedCountries" :class="{ thou: entry.cases>1000 }">
+            <td v-for="key in columns" :class="{ sel: sortKey == key || def == key }">
+              {{ entry[key] | formatNumber }}
+            </td>
+          </tr>
+        </tbody>
+        <tfoot><tr><td :colspan="ncols">{{footer}}</td></tr></tfoot>
+      </table>
+    </script>
+  </head>
+  <body>
+    <div id="visual" class="visual"></div>
+    <div id="table">
+      <grid
+        title="COVID-19 Stats (countries with more than 1,000 cases in brown)"
+        footer="Warning: Different countries report cases at different hours. Today data vary a lot over the course of the day."
+        :countries="gridData"
+        :columns="gridColumns"
+        ncols="6"
+      >
+      </grid>
+    </div>
+
+    <script>
+      if(typeof fetch!=="function"){
+        window.alert("Your browser is not modern enough to display this webpage. Sorry.");
+      }
+
+      Vue.component("grid", {
+        template: "#grid",
+        props: {
+          countries: Array,
+          columns: Array,
+          ncols: String,
+          footer: String,
+          title: String
+        },
+        data: function() {
+          var sortOrders={};
+          this.columns.forEach(function(key) {
+            sortOrders[key]=1;
+          });
+          return {
+            def: "todayCases",
+            sortKey: "",
+            sortOrders: sortOrders
+          };
+        },
+        computed: {
+          sortedCountries: function(){
+            var
+              sortKey=this.sortKey,
+              order=this.sortOrders[sortKey] || 1,
+              countries=this.countries
+            ;
+
+            if (sortKey) {
+              countries=countries.slice().sort(function(a, b){
+                a=a[sortKey];
+                b=b[sortKey];
+                return (a===b ? 0 : a>b ? 1 : -1) * order;
+              });
+            }
+            return countries;
+          }
+        },
+        filters: {
+          labelize: function(str){
+            var o={
+              "country": "Country",
+              "cases": "Total Cases",
+              "todayCases": "Today Cases",
+              "deaths": "Total Deaths",
+              "todayDeaths": "Today Deaths",
+              "rate": "Fatality Rate"
+            };
+            return o[str];
+          },
+          formatNumber: function(n){
+            return (typeof n==="number") ? new Intl.NumberFormat('en-US').format(n) : n;
+          }
+        },
+        methods: {
+          sortBy: function(key){
+            this.def="";
+            this.sortKey=key;
+            this.sortOrders[key]=this.sortOrders[key] * -1;
+          }
+        }
+      });
+
+
+      fetch("https://corona.lmao.ninja/countries").then(function(resp){
+        resp.json().then(function(data) {
+          data.sort(function(a,b){
+            return b.todayCases - a.todayCases;
+          });
+
+          var chart=data.slice(0,10);
+
+          if(chart.length>9){
+            VisualJS.setup.colors.series[0]="#000080";
+            visual({
+              fixed: [400,600],
+        			lang: "en",
+              title: "Today COVID-19 Cases: 10 Top Countries So Far...",
+              footer: "Warning: Different countries report cases at different hours. These data vary a lot over the course of the day.",
+        			autoheading: false,
+        			type: "rank",
+        			data: chart.map(function(d){ return [d.country, d.todayCases]; })
+        		});
+          }else{
+            document.querySelector("#visual").innerHTML="There are less than 10 countries reporting cases today. Take into account that different countries might report cases at different hours.";
+          }
+
+          new Vue({
+            el: "#table",
+            data: {
+              gridColumns: ["country", "todayCases", "todayDeaths", "cases", "deaths", "rate"],
+              gridData: data.map(function(c){
+                c.rate=(c.deaths*100/c.cases).toFixed(2)+"%";
+                return c;
+              })
+            }
+          });
+        });
+
+      });
+    </script>
+  </body>
 </html>
