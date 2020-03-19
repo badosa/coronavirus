@@ -10,8 +10,12 @@
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
 
     <style>
+      * {
+        box-sizing: border-box;
+      }
       body,
-      #visual, #VisualJSTooltip {
+      #visual,
+      #VisualJSTooltip {
         font-family: 'Lato', sans-serif;
         font-size: 14px;
       }
@@ -23,30 +27,41 @@
         width: 400px;
         margin: 0;
       }
+      #faketable {
+        float: left;
+        margin-top: -10px;
+      }
       #table {
-        height: 545px;
+        height: 490px;
         width: 800px;
         overflow-y: scroll;
       }
 
-      caption, #visual h1 {
+      caption, thead {
+        position: absolute;
+        left: -9999px;
+      }
+
+      #caption, #visual h1 {
         font-size: 16px;
         text-align: left;
         font-weight: bold;
       }
-      thead th {
+      #thead > span, td {
+        text-align: right;
+        padding: 4px 10px;
+        width: 124px;
+      }
+      #thead > span {
+        display: inline-block;
         background-color: #333;
         color: #fff;
         cursor: pointer;
         padding: 10px;
-      }
-      th, td {
-        text-align: right;
-        padding: 4px 10px;
-        min-width: 95px;
+        margin: 0 1px;
       }
 
-      tr th:first-of-type,
+      #thead > span:first-of-type,
       tr td:first-of-type {
         text-align: left;
       }
@@ -55,7 +70,7 @@
         background-color: #ddd;
       }
 
-      th.sel {
+      #thead > span.sel {
         background-color: hsla(240, 100%, 25%, 1);
       }
       td.sel {
@@ -71,7 +86,7 @@
       }
 
 
-      th.sel .arrow {
+      #thead > span.sel .arrow {
         opacity: 1;
       }
 
@@ -95,43 +110,66 @@
         border-right: 4px solid transparent;
         border-top: 4px solid #fff;
       }
+
+      @media only screen and (max-width: 1240px) {
+        #visual {
+          display: none;
+        }
+      }
+
     </style>
 
     <script type="text/x-template" id="grid">
-      <table>
-        <caption>{{title}}</caption>
-        <thead>
-          <tr>
-            <th v-for="key in columns"
-              @click="sortBy(key)"
-              :class="{ sel: sortKey == key || def == key }">
-              {{ key | labelize }}
-              <span class="arrow" :class="sortOrders[key] > 0 ? 'asc' : 'dsc'">
-              </span>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="entry in sortedCountries" :class="{ thou: entry.cases>1000 }">
-            <td v-for="key in columns" :class="{ sel: sortKey == key || def == key }">
-              {{ entry[key] | formatNumber }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div id="faketable">
+        <h1 id="caption">{{title}}</h1>
+        <div id="thead">
+          <span v-for="key in columns"
+            @click="sortBy(key)"
+            :class="{ sel: sortKey == key || def == key }">
+            {{ key | labelize }}
+            <span class="arrow" :class="sortOrders[key] > 0 ? 'asc' : 'dsc'">
+            </span>
+          </span>
+        </div>
+
+        <div id="table">
+          <table>
+            <caption>{{title}}</caption>
+            <thead>
+              <tr>
+                <th v-for="key in columns"
+                  @click="sortBy(key)"
+                  :class="{ sel: sortKey == key || def == key }">
+                  {{ key | labelize }}
+                  <span class="arrow" :class="sortOrders[key] > 0 ? 'asc' : 'dsc'">
+                  </span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="entry in sortedCountries" :class="{ thou: entry.cases>1000 }">
+                <td v-for="key in columns" :class="{ sel: sortKey == key || def == key }">
+                  {{ entry[key] | formatNumber }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>{{footer}}</p>
+      </div>
     </script>
   </head>
   <body>
     <div id="visual" class="visual"></div>
-    <div id="table">
+    <div id="thegrid">
       <grid
         title="COVID-19 Stats (countries with more than 1,000 cases in brown)"
+        footer="Warning: Different countries report cases at different hours. Today data vary a lot over the course of the day."
         :countries="gridData"
         :columns="gridColumns"
       >
       </grid>
     </div>
-    <p>Warning: Different countries report cases at different hours. Today data vary a lot over the course of the day.</p>
 
     <script>
       if(typeof fetch!=="function"){
@@ -143,12 +181,13 @@
         props: {
           countries: Array,
           columns: Array,
-          title: String
+          title: String,
+          footer: String
         },
         data: function() {
           var sortOrders={};
           this.columns.forEach(function(key) {
-            sortOrders[key]=1;
+            sortOrders[key] = "todayCases"===key ? -1 : 1;
           });
           return {
             def: "todayCases",
@@ -228,7 +267,7 @@
           }
 
           new Vue({
-            el: "#table",
+            el: "#thegrid",
             data: {
               gridColumns: ["country", "todayCases", "todayDeaths", "cases", "deaths", "rate"],
               gridData: data.map(function(c){
