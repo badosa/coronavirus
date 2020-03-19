@@ -10,28 +10,29 @@
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
 
     <style>
-      body {
+      body,
+      #visual, #VisualJSTooltip {
         font-family: 'Lato', sans-serif;
         font-size: 14px;
+      }
+      body {
         margin: 10px 20px;
       }
       #visual {
         float: left;
         width: 400px;
+        margin: 0;
       }
       #table {
-        height: 600px;
+        height: 545px;
         width: 800px;
         overflow-y: scroll;
       }
 
-      caption {
+      caption, #visual h1 {
         font-size: 16px;
         text-align: left;
         font-weight: bold;
-      }
-      tfoot td {
-        background-color: #fafad2;
       }
       thead th {
         background-color: #333;
@@ -65,7 +66,7 @@
         background-color: hsla(240, 100%, 90%, 1);
       }
 
-      tr.thou * {
+      tr.thou *, p {
         color: brown;
       }
 
@@ -117,7 +118,6 @@
             </td>
           </tr>
         </tbody>
-        <tfoot><tr><td :colspan="ncols">{{footer}}</td></tr></tfoot>
       </table>
     </script>
   </head>
@@ -126,13 +126,12 @@
     <div id="table">
       <grid
         title="COVID-19 Stats (countries with more than 1,000 cases in brown)"
-        footer="Warning: Different countries report cases at different hours. Today data vary a lot over the course of the day."
         :countries="gridData"
         :columns="gridColumns"
-        ncols="6"
       >
       </grid>
     </div>
+    <p>Warning: Different countries report cases at different hours. Today data vary a lot over the course of the day.</p>
 
     <script>
       if(typeof fetch!=="function"){
@@ -144,8 +143,6 @@
         props: {
           countries: Array,
           columns: Array,
-          ncols: String,
-          footer: String,
           title: String
         },
         data: function() {
@@ -222,7 +219,6 @@
               fixed: [400,600],
         			lang: "en",
               title: "Today COVID-19 Cases: 10 Top Countries So Far...",
-              footer: "Warning: Different countries report cases at different hours. These data vary a lot over the course of the day.",
         			autoheading: false,
         			type: "rank",
         			data: chart.map(function(d){ return [d.country, d.todayCases]; })
