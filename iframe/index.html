@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <title>Worldwide Real-time COVID-19 Stats</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      div {
+        text-align: center;
+      }
+      iframe {
+        border: none;
+      }
+      #trends, #usa {
+        height: 400px;
+      }
+      #trends {
+        width: 40%;
+      }
+      #usa {
+        width: 55%;
+      }
+      #dash {
+        width: 100%;
+        height: 500px;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <iframe id="trends" src="https://badosa.github.io/coronavirus/trends/?ny"></iframe>
+      <iframe id="usa" src="https://badosa.github.io/coronavirus/usa/"></iframe>
+      <iframe id="dash" src="https://badosa.github.io/coronavirus/"></iframe>
+    </div>
+  </body>
+</html>
