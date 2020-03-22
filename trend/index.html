@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8">
+    <title>Worldwide Real-time COVID-19 Trends</title>
+    <link href="https://visual.js.org/visual.css" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <script src="https://visual.js.org/lazyvisualsetup.js"></script>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body, #visual, #VisualJSTooltip, .legendLabel, select {
+        font-family: 'Lato', sans-serif;
+        font-size: 14px;
+      }
+      select {
+        position: absolute;
+        top: 2px;
+        right: 20px;
+        background-color: hsla(240, 100%, 25%, 1);
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <select></select>
+    <div id="visual" class="visual">Retrieving data...</div>
+
+    <script>
+      if(typeof fetch!=="function"){
+        window.alert("Your browser is not modern enough to display this webpage. Sorry.");
+      }
+
+      var defCountry="Italy";
+      VisualJS.setup.canvas.position="nw";
+
+      fetch("https://corona.lmao.ninja/historical").then(function(resp){
+        resp.json().then(function(data) {
+          var
+            countries=data.map(function(c){
+              return c.province ? c.country + ' (' + c.province + ')': c.country;
+            }),
+            viz=function(selCountry){
+              var
+                country=data.filter(function(c){
+                  var name=c.province ? c.country + ' (' + c.province + ')': c.country;
+                  return name===selCountry;
+                })[0].timeline,
+                time=[]
+                cases=[],
+                deaths=[],
+                recovered=[],
+                t=null
+              ;
+
+              for(var k in country.cases){
+                t=k.split("/");
+                time.push("20"+t[2]+"/"+t[0]+"/"+t[1]);
+                cases.push(Number(country.cases[k]));
+                deaths.push(Number(country.deaths[k]));
+                recovered.push(Number(country.recovered[k]));
+              }
+
+              visual({
+                lang: "en",
+                autoheading: false,
+                time: time,
+                grid: {
+                  line: 5,
+                  shadow: 6,
+                  point: 0
+                },
+                axis: {
+                  x: false
+                },
+                legend: true,
+                type: "tsline",
+                data: [
+                  { label: "Cases", val: cases },
+                  { label: "Deaths", val: deaths },
+                  { label: "Recovered", val: recovered }
+                ]
+              });
+            },
+            select=function(country){
+              var html="";
+              country.forEach(function(c){
+                var selected=(c===defCountry) ? 'selected': "";
+                html+='<option value="'+c+'" ' + selected + '>'+c+'</option>';
+              });
+
+              document.querySelector("select").innerHTML=html;
+
+              document.querySelector("select").addEventListener("change", function() {
+              	viz(this.value);
+              }, false);
+            }
+          ;
+
+          countries=countries.sort();
+          select(countries);
+          viz(defCountry);
+        });
+      });
+    </script>
+
+  </body>
+</html>
