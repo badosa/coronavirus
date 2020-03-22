@@ -2,39 +2,32 @@
 <html lang="en">
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta charset="UTF-8">
-    <title>Today COVID-19 Stats</title>
-    <link href="https://visual.js.org/visual.css" rel="stylesheet" type="text/css" />
+    <meta charset="utf-8">
+    <title>Worldwide Real-time COVID-19 Stats</title>
     <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
-    <script src="https://visual.js.org/visual.js"></script>
-    <script src="https://visual.js.org/visual.setup.js"></script>
-    <script src="https://cdn.jsdelivr.net/combine/npm/jquery@3.4.1,npm/jquery.flot@0.8.3"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
 
     <style>
       * {
         box-sizing: border-box;
       }
-      body,
-      #visual,
-      #VisualJSTooltip {
+      body {
         font-family: 'Lato', sans-serif;
         font-size: 14px;
       }
-      body {
-        margin: 10px 20px;
+      p {
+        margin: 2px 0;
+        text-align: left;
       }
-      #visual {
-        float: left;
-        width: 400px;
-        margin: 10px 0 0 0;
+      main {
+        text-align: center;
       }
       #faketable {
-        float: left;
+        display: inline-block;
+        width: 1136px;
       }
       #table {
         height: 490px;
-        width: 800px;
         overflow-y: scroll;
       }
 
@@ -43,17 +36,21 @@
         left: -9999px;
       }
 
-      #caption, #visual h1 {
+      #caption {
         font-size: 16px;
         text-align: left;
         font-weight: bold;
+        margin: 0 0 4px 0;
       }
-      #thead > span, td {
+      .thead:first-of-type {
+        margin-bottom: 2px;
+      }
+      .thead > span, td {
         text-align: right;
         padding: 4px 10px;
         width: 124px;
       }
-      #thead > span {
+      .thead > span {
         display: inline-block;
         background-color: #333;
         color: #fff;
@@ -62,7 +59,7 @@
         margin: 0 1px;
       }
 
-      #thead > span:first-of-type,
+      .thead > span:first-of-type,
       tr td:first-of-type {
         text-align: left;
       }
@@ -71,7 +68,7 @@
         background-color: #ddd;
       }
 
-      #thead > span.sel {
+      .thead > span.sel {
         background-color: hsla(240, 100%, 25%, 1);
       }
       td.sel {
@@ -82,12 +79,12 @@
         background-color: hsla(240, 100%, 90%, 1);
       }
 
-      tr.thou *, p {
+      tr.thou * {
         color: brown;
       }
 
 
-      #thead > span.sel .arrow {
+      .thead > span.sel .arrow {
         opacity: 1;
       }
 
@@ -116,7 +113,9 @@
     <script type="text/x-template" id="grid">
       <div id="faketable">
         <h1 id="caption" aria-hidden="true">{{title}}</h1>
-        <div id="thead" aria-hidden="true">
+        <p><label><input type="checkbox" v-model="filtered" /> Show only countries with more than 1,000 cases (showing: {{count}} countries)</label></p>
+
+        <div class="thead" aria-hidden="true">
           <span v-for="key in columns"
             @click="sortBy(key)"
             :class="{ sel: sortKey == key || def == key }">
@@ -154,16 +153,15 @@
     </script>
   </head>
   <body>
-    <div id="thegrid">
+    <main>
       <grid
-        title="COVID-19 Stats (countries with more than 1,000 cases in brown)"
+        title="Worldwide Real-time COVID-19 Stats"
         footer="Warning: Different countries report cases at different hours. Today data vary a lot over the course of the day."
         :countries="gridData"
         :columns="gridColumns"
       >
       </grid>
-    </div>
-    <div id="visual" class="visual"></div>
+    </main>
 
     <script>
       if(typeof fetch!=="function"){
@@ -171,35 +169,18 @@
       }
 
       defaultCol="deaths";
-      VisualJS.setup.colors.series[0]="#000080";
-
-      function viz(data, column){
-        if(data.length>9){
-          visual({
-            fixed: [400,600],
-            lang: "en",
-            title: labelize(column),
-            autoheading: false,
-            type: "rank",
-            data: data.map(function(e){ return [e.country, e[column]]; }),
-            dec: column!=="rate" ? 0 : 2,
-            unit: {
-              symbol: column!=="rate" ? "" : "%"
-            }
-          });
-        }else{
-          document.querySelector("#visual").innerHTML="There are less than 10 countries reporting cases today. Take into account that different countries might report cases at different hours.";
-        }
-      }
 
       function labelize(str){
         var o={
           "country": "Country",
-          "cases": "Total Cases",
+          "cases": "Cases",
           "todayCases": "Today Cases",
-          "deaths": "Total Deaths",
+          "critical": "Critical",
+          "recovered": "Recovered",
+          "deaths": "Deaths",
           "todayDeaths": "Today Deaths",
-          "rate": "Fatality Rate"
+          "rate": "Fatality Rate",
+          "casesPerOneMillion": "Cases per 1M"
         };
         return o[str];
       }
@@ -213,21 +194,15 @@
           footer: String
         },
         data: function() {
-          var
-            sortOrders={},
-            countries=this.countries
-          ;
+          var sortOrders={};
+
           this.columns.forEach(function(key) {
             sortOrders[key] = defaultCol===key ? -1 : 1;
-            if(defaultCol===key){
-              viz(
-                countries.slice(0,10),
-                key
-              );
-            }
-
           });
+
           return {
+            count: 0,
+            filtered: true,
             def: defaultCol,
             sortKey: "",
             sortOrders: sortOrders
@@ -241,6 +216,12 @@
               countries=this.countries
             ;
 
+            if(this.filtered){
+              countries=countries.filter(function(c) {
+                return c.cases>1000;
+              });
+            }
+
             if(sortKey){
               countries=countries.slice().sort(function(a, b){
                 a=a[sortKey];
@@ -248,16 +229,9 @@
                 return (a===b ? 0 : a>b ? 1 : -1) * order;
               });
 
-              if(sortKey==="country"){
-                document.querySelector("#visual").innerHTML="";
-              }else if(order===-1){
-                viz(
-                  countries.slice(0,10),
-                  sortKey
-                );
-              }
-
             }
+
+            this.count=countries.length;
             return countries;
           }
         },
@@ -282,7 +256,6 @@
 
       fetch("https://corona.lmao.ninja/countries").then(function(resp){
         resp.json().then(function(data) {
-
           if(!data.length){
             document.body.innerText="Sorry, I could not retrieve any data. Please, try later.";
           }
@@ -292,9 +265,9 @@
           });
 
           new Vue({
-            el: "#thegrid",
+            el: "main",
             data: {
-              gridColumns: ["country", "todayCases", "todayDeaths", "cases", "deaths", "rate"],
+              gridColumns: ["country", "cases", "casesPerOneMillion", "recovered", "critical", "deaths", "rate", "todayCases", "todayDeaths"],
               gridData: data.map(function(c){
                 c.rate=c.deaths*100/c.cases;
                 return c;
