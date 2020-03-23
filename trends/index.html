@@ -47,7 +47,7 @@
               var
                 country=data.filter(function(c){
                   var name=c.province ? c.country + ' (' + c.province + ')': c.country;
-                  return name===selCountry;
+                  return name.toLowerCase()===selCountry.toLowerCase();
                 })[0].timeline,
                 time=[]
                 cases=[],
@@ -88,7 +88,7 @@
             select=function(country){
               var html="";
               country.forEach(function(c){
-                var selected=(c===defCountry) ? 'selected': "";
+                var selected=(c.toLowerCase()===defCountry.toLowerCase()) ? 'selected': "";
                 html+='<option value="'+c+'" ' + selected + '>'+c+'</option>';
               });
 
