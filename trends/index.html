@@ -36,6 +36,7 @@
 
       var defCountry="Italy";
       VisualJS.setup.canvas.position="nw";
+      VisualJS.setup.tooltipseparator=" on ";
 
       fetch("https://corona.lmao.ninja/historical").then(function(resp){
         resp.json().then(function(data) {
@@ -66,7 +67,7 @@
 
               visual({
                 lang: "en",
-                autoheading: false,
+                autoheading: true,
                 time: time,
                 grid: {
                   line: 5,
