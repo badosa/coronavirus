@@ -24,7 +24,7 @@
       }
       #faketable {
         display: inline-block;
-        width: 1136px;
+        width: 1262px;
       }
       #table {
         height: 490px;
@@ -55,7 +55,7 @@
         background-color: #333;
         color: #fff;
         cursor: pointer;
-        padding: 10px;
+        padding: 10px 5px 10px 10px;
         margin: 0 1px;
       }
 
@@ -113,7 +113,7 @@
     <script type="text/x-template" id="grid">
       <div id="faketable">
         <h1 id="caption" aria-hidden="true">{{title}}</h1>
-        <p><label><input type="checkbox" v-model="filtered" /> Show only countries with more than 1,000 cases (showing: {{count}} countries)</label></p>
+        <p><label><input type="checkbox" v-model="filtered" /> Show only countries with more than 3,000 cases (showing: {{count}} countries)</label></p>
 
         <div class="thead" aria-hidden="true">
           <span v-for="key in columns"
@@ -140,7 +140,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="entry in sortedCountries" :class="{ thou: entry.cases>1000 }">
+              <tr v-for="entry in sortedCountries" :class="{ thou: entry.cases>3000 }">
                 <td v-for="key in columns" :class="{ sel: sortKey == key || def == key }">
                   {{ entry[key], key | formatNumber }}
                 </td>
@@ -180,7 +180,8 @@
           "deaths": "Deaths",
           "todayDeaths": "Today Deaths",
           "rate": "Fatality Rate",
-          "casesPerOneMillion": "Cases per 1M"
+          "casesPerOneMillion": "Cases per 1M",
+          "deathsPerOneMillion": "Deaths per 1M",
         };
         return o[str];
       }
@@ -218,7 +219,7 @@
 
             if(this.filtered){
               countries=countries.filter(function(c) {
-                return c.cases>1000;
+                return c.cases>3000;
               });
             }
 
@@ -267,7 +268,7 @@
           new Vue({
             el: "main",
             data: {
-              gridColumns: ["country", "cases", "casesPerOneMillion", "recovered", "critical", "deaths", "rate", "todayCases", "todayDeaths"],
+              gridColumns: ["country", "cases", "casesPerOneMillion", "recovered", "critical", "deaths", "rate", "deathsPerOneMillion", "todayCases", "todayDeaths"],
               gridData: data.map(function(c){
                 c.rate=c.deaths*100/c.cases;
                 return c;
