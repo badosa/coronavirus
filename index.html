@@ -24,7 +24,7 @@
       }
       #faketable {
         display: inline-block;
-        width: 1262px;
+        width: 1135px; /*1262px;*/
       }
       #table {
         height: 490px;
@@ -268,7 +268,7 @@
           new Vue({
             el: "main",
             data: {
-              gridColumns: ["country", "cases", "casesPerOneMillion", "recovered", "critical", "deaths", "rate", "deathsPerOneMillion", "todayCases", "todayDeaths"],
+              gridColumns: ["country", "cases", /*"casesPerOneMillion",*/ "recovered", "critical", "deaths", "rate", "deathsPerOneMillion", "todayCases", "todayDeaths"],
               gridData: data.map(function(c){
                 c.rate=c.deaths*100/c.cases;
                 return c;
