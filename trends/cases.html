@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8">
+    <title>Worldwide Real-time COVID-19 Trends</title>
+    <link href="https://visual.js.org/visual.css" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <script src="https://visual.js.org/lazyvisualsetup.js"></script>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body, #visual, #VisualJSTooltip, #visual h1 {
+        font-family: 'Lato', sans-serif;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="visual" class="visual">Retrieving data...</div>
+
+    <script>
+      if(typeof fetch!=="function"){
+        window.alert("Your browser is not modern enough to display this webpage. Sorry.");
+      }
+
+      VisualJS.setup.canvas.position="nw";
+      VisualJS.setup.tooltipseparator=" on ";
+
+      var indicator="cases";
+
+      fetch("https://corona.lmao.ninja/v2/historical").then(function(resp){
+        resp.json().then(function(data) {
+          var
+            time=Object.keys(data[0].timeline[indicator]),
+            last=time
+              .sort(function(a, b){
+                var
+                  A=a.split("/"),
+                  B=b.split("/")
+                ;
+                return new Date(Number(A[2])+2000, A[0]-1, A[1]) - new Date(Number(B[2])+2000, B[0]-1, B[1]);
+              })
+              .slice(-1)[0],
+            countries=data.sort(function(a, b){
+              return b.timeline[indicator][last] - a.timeline[indicator][last];
+            }).filter(function(c){
+              return c.country.toLowerCase()!=="china";
+            }).slice(0,5)
+          ;
+
+          visual({
+            lang: "en",
+            title: indicator.toUpperCase() + ". FIRST 5 COUNTRIES (CHINA EXCEPTED)",
+            autoheading: true,
+            time: time.map(function(t){
+                var arr=t.split("/");
+                return "20"+arr[2]+"/"+arr[0]+"/"+arr[1];
+            }),
+            grid: {
+              line: 5,
+              shadow: 6,
+              point: 0
+            },
+            axis: {
+              x: false
+            },
+            legend: true,
+            type: "tsline",
+            data: countries.map(function(c){
+              var val=[];
+
+              for(var k in c.timeline[indicator]){
+                val.push(Number(c.timeline[indicator][k]));
+              }
+
+              return {
+                label: c.province ? c.country.toUpperCase() + ' (' + c.province.toUpperCase() + ')': c.country.toUpperCase(),
+                val: val
+              };
+            })
+          });
+        });
+      });
+    </script>
+
+  </body>
+</html>

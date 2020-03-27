@@ -15,14 +15,14 @@
       iframe {
         border: none;
       }
-      #trends, #usa {
+      #trends, #usa, #cases, #deaths {
         height: 400px;
       }
-      #trends {
-        width: 40%;
+      #trends, #cases {
+        width: 45%;
       }
-      #usa {
-        width: 55%;
+      #usa, #deaths {
+        width: 50%;
       }
       #dash {
         width: 100%;
@@ -38,9 +38,11 @@
   </head>
   <body>
     <div>
-      <iframe id="trends" src="https://badosa.github.io/coronavirus/trends/"></iframe>
-      <iframe id="usa" src="https://badosa.github.io/coronavirus/usa/"></iframe>
-      <iframe id="dash" src="https://badosa.github.io/coronavirus/"></iframe>
+      <iframe id="trends" src="../trends/index.html"></iframe>
+      <iframe id="usa" src="../usa/index.html"></iframe>
+      <iframe id="cases" src="../trends/cases.html"></iframe>
+      <iframe id="deaths" src="../trends/deaths.html"></iframe>
+      <iframe id="dash" src="../index.html"></iframe>
     </div>
   </body>
 </html>

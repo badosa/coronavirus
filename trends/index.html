@@ -34,7 +34,7 @@
         window.alert("Your browser is not modern enough to display this webpage. Sorry.");
       }
 
-      var defCountry="Italy";
+      var defCountry="USA";
       VisualJS.setup.canvas.position="nw";
       VisualJS.setup.tooltipseparator=" on ";
 
@@ -47,8 +47,8 @@
             viz=function(selCountry){
               var
                 country=data.filter(function(c){
-                  var name=c.province ? c.country + ' (' + c.province + ')': c.country;
-                  return name.toLowerCase()===selCountry.toLowerCase();
+                  var name=c.province ? c.country.toUpperCase() + ' (' + c.province.toUpperCase() + ')': c.country.toUpperCase();
+                  return name.toUpperCase()===selCountry.toUpperCase();
                 })[0].timeline,
                 time=[]
                 cases=[],
@@ -89,7 +89,8 @@
             select=function(country){
               var html="";
               country.forEach(function(c){
-                var selected=(c.toLowerCase()===defCountry.toLowerCase()) ? 'selected': "";
+                c=c.toUpperCase();
+                var selected=(c===defCountry) ? 'selected': "";
                 html+='<option value="'+c+'" ' + selected + '>'+c+'</option>';
               });
 
