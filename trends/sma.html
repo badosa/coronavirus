@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8">
+    <title>Worldwide Real-time COVID-19 Trends</title>
+    <link href="https://visual.js.org/visual.css" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <script src="https://visual.js.org/lazyvisualsetup.js"></script>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body, #visual, #VisualJSTooltip, #visual h1, #visual .legend, #visual .VisualJSfooter p {
+        font-family: 'Lato', sans-serif;
+        font-size: 16px;
+      }
+      #input {
+        position: absolute;
+        top: 40%;
+        left: 70px;
+        background-color: #f0f0f0;
+        padding: 8px 14px;
+        border: 1px solid #ccc;
+        font-size: 13px;
+      }
+      .radio {
+        margin: 8px 0;
+      }
+      label {
+        display: block;
+        padding: 2px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="visual" class="visual"></div>
+
+    <div id="input">
+      <div class="radio">
+        <label><input type="radio" name="var" value="cases" checked /> CASES</label>
+        <label><input type="radio" name="var" value="deaths" /> DEATHS</label>
+      </div>
+      <div class="radio">
+        <label><input type="radio" name="stat" value="ACCUMULATED DATA" checked /> ACCUMULATED DATA</label>
+        <label><input type="radio" name="stat" value="DAILY DATA" /> DAILY DATA</label>
+        <label><input type="radio" name="stat" value="DAILY DATA (SMA3)" /> DAILY DATA (SMA3)</label>
+      </div>
+    </div>
+
+    <script>
+      if(typeof fetch!=="function"){
+        window.alert("Your browser is not modern enough to display this webpage. Sorry.");
+      }
+
+      VisualJS.setup.canvas.position="nw";
+      VisualJS.setup.tooltipseparator=" on ";
+
+      var
+        funcs={
+          "ACCUMULATED DATA": function(i, t, k){
+            return Number(t[k[i]]);
+          },
+          "DAILY DATA": function(i, t, k){
+            var
+              a=Number(t[k[i]]),
+              b=Number(t[k[i-1]])
+            ;
+            return i ? a-b : null;
+          },
+          "DAILY DIFFERENCES": function(i, t, k){
+            var
+              a=Number(t[k[i]]),
+              b=Number(t[k[i-1]]),
+              c=Number(t[k[i-2]])
+            ;
+            return i>1 ? (a-b)-(b-c) : null;
+          },
+          //simple moving average 3 periods
+          "ACCUMULATED DATA (SMA3)": function(i, t, k){
+            return (i && i+1<k.length) ? ((Number(t[k[i+1]])+Number(t[k[i]])+Number(t[k[i-1]]))/3).toFixed(0) : null;
+          },
+          "DAILY DATA (SMA3)": function(i, t, k){
+            var
+              a=((Number(t[k[i+1]])+Number(t[k[i]])+Number(t[k[i-1]]))/3).toFixed(0),
+              b=((Number(t[k[i]])+Number(t[k[i-1]])+Number(t[k[i-2]]))/3).toFixed(0)
+            ;
+            return i && i+1<k.length ? a-b : null;
+          },
+          "DAILY DIFFERENCES (SMA3)": function(i, t, k){
+            var
+              a=((Number(t[k[i+1]])+Number(t[k[i]])+Number(t[k[i-1]]))/3).toFixed(0),
+              b=((Number(t[k[i]])+Number(t[k[i-1]])+Number(t[k[i-2]]))/3).toFixed(0),
+              c=((Number(t[k[i-1]])+Number(t[k[i-2]])+Number(t[k[i-3]]))/3).toFixed(0)
+            ;
+            return i>1 && i+1<k.length ? (a-b)-(b-c) : null;
+          }
+
+
+        }
+      ;
+
+      fetch("https://corona.lmao.ninja/v2/historical").then(function(resp){
+        resp.json().then(function(data) {
+          var
+            viz=function(id, indicator,compute){
+              var
+                time=Object.keys(data[0].timeline[indicator]),
+                last=time
+                  .sort(function(a, b){
+                    var
+                      A=a.split("/"),
+                      B=b.split("/")
+                    ;
+                    return new Date(Number(A[2])+2000, A[0]-1, A[1]) - new Date(Number(B[2])+2000, B[0]-1, B[1]);
+                  })
+                  .slice(-1)[0],
+                countries=data.sort(function(a, b){
+                  return b.timeline[indicator][last] - a.timeline[indicator][last];
+                }).filter(function(c){
+                  return c.country.toLowerCase()!=="china";
+                }).slice(0,5)
+              ;
+
+              visual({
+                //fixed: [400, 400],
+                lang: "en",
+                title: "FIRST 5 COUNTRIES (CHINA EXCEPTED)",
+                footer: "SMA3: Simple moving average (3 periods).",
+                autoheading: true,
+                time: time.map(function(t){
+                    var arr=t.split("/");
+                    return "20"+arr[2]+"/"+arr[0]+"/"+arr[1];
+                }).slice(-30),
+                grid: {
+                  line: 5,
+                  shadow: 6,
+                  point: 0
+                },
+                axis: {
+                  x: false
+                },
+                legend: true,
+                type: "tsline",
+                data: countries.map(function(c){
+                  var
+                    keys=Object.keys(c.timeline[indicator]),
+                    val=keys.map(function(d,i){
+                      return funcs[compute](i, c.timeline[indicator], keys);
+                    })
+                  ;
+
+                  return {
+                    label: c.province ? c.country.toUpperCase() + ' (' + c.province.toUpperCase() + ')': c.country.toUpperCase(),
+                    val: val.slice(-30)
+                  };
+                })
+              });
+            }
+          ;
+
+          var d={
+            var: "cases",
+            stat: "ACCUMULATED DATA"
+          };
+          viz("visual", d.var, d.stat);
+
+          document.querySelectorAll("input").forEach(function(e){
+          	e.addEventListener("change", function() {
+              d[this.name]=this.value;
+              viz("visual", d.var, d.stat);
+          	}, false);
+          });
+        });
+      });
+    </script>
+
+  </body>
+</html>

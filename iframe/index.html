@@ -15,13 +15,16 @@
       iframe {
         border: none;
       }
-      #trends, #usa, #cases, #deaths {
+      #sma {
+        width: 100%;
+      }
+      #trends, #usa, #sma {
         height: 400px;
       }
-      #trends, #cases {
+      #trends {
         width: 45%;
       }
-      #usa, #deaths {
+      #usa {
         width: 50%;
       }
       #dash {
@@ -40,8 +43,7 @@
     <div>
       <iframe id="trends" src="../trends/index.html"></iframe>
       <iframe id="usa" src="../usa/index.html"></iframe>
-      <iframe id="cases" src="../trends/cases.html"></iframe>
-      <iframe id="deaths" src="../trends/deaths.html"></iframe>
+      <iframe id="sma" src="../trends/sma.html"></iframe>
       <iframe id="dash" src="../index.html"></iframe>
     </div>
   </body>
