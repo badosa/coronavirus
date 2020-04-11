@@ -53,7 +53,7 @@
                 time=[]
                 cases=[],
                 deaths=[],
-                //was removed from API recovered=[],
+                recovered=[],
                 t=null
               ;
 
@@ -62,7 +62,7 @@
                 time.push("20"+t[2]+"/"+t[0]+"/"+t[1]);
                 cases.push(Number(country.cases[k]));
                 deaths.push(Number(country.deaths[k]));
-                //was removed from API recovered.push(Number(country.recovered[k]));
+                recovered.push(Number(country.recovered[k]));
               }
 
               visual({
@@ -81,8 +81,8 @@
                 type: "tsline",
                 data: [
                   { label: "Cases", val: cases },
-                  { label: "Deaths", val: deaths }
-                  //was removed from API ,{ label: "Recovered", val: recovered }
+                  { label: "Deaths", val: deaths },
+                  { label: "Recovered", val: recovered }
                 ]
               });
             },
