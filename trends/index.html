@@ -41,14 +41,16 @@
       fetch("https://corona.lmao.ninja/v2/historical").then(function(resp){
         resp.json().then(function(data) {
           var
-            countries=data.map(function(c){
-              return c.province ? c.country + ' (' + c.province + ')': c.country;
+            filtered=data.filter(function(c){
+              return !c.province;
+            }),
+            countries=filtered.map(function(c){
+              return c.country.toUpperCase();
             }),
             viz=function(selCountry){
               var
-                country=data.filter(function(c){
-                  var name=c.province ? c.country.toUpperCase() + ' (' + c.province.toUpperCase() + ')': c.country.toUpperCase();
-                  return name.toUpperCase()===selCountry.toUpperCase();
+                country=filtered.filter(function(c){
+                  return c.country.toUpperCase()===selCountry;
                 })[0].timeline,
                 time=[]
                 cases=[],
@@ -89,7 +91,6 @@
             select=function(country){
               var html="";
               country.forEach(function(c){
-                c=c.toUpperCase();
                 var selected=(c===defCountry) ? 'selected': "";
                 html+='<option value="'+c+'" ' + selected + '>'+c+'</option>';
               });
@@ -102,7 +103,7 @@
             }
           ;
 
-          countries=countries.sort();
+          countries.sort();
           select(countries);
           viz(defCountry);
         });
