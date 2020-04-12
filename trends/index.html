@@ -30,11 +30,15 @@
     <div id="visual" class="visual">Retrieving data...</div>
 
     <script>
-      if(typeof fetch!=="function"){
+      if(typeof fetch!=="function" || typeof URLSearchParams!=="function"){
         window.alert("Your browser is not modern enough to display this webpage. Sorry.");
       }
 
-      var defCountry="USA";
+      var
+        pars=new URLSearchParams(window.location.search),
+        defCountry=pars.has("geo") ? pars.get("geo").toUpperCase() : "USA";
+      ;
+
       VisualJS.setup.canvas.position="nw";
       VisualJS.setup.tooltipseparator=" on ";
 
