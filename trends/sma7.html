@@ -57,9 +57,9 @@
             }),
 
             sma7=function(c,i,a){
-              return (i>2 && i+3<a.length)
+              return (i>3 && i+3<a.length)
                 ?
-                ((a[i+3]-a[i-4])/7).toFixed(0)
+                Math.round((a[i+3]-a[i-4])/7)
                 :
                 null
               ;
@@ -85,18 +85,11 @@
                 recovered.push(Number(country.recovered[k]));
               }
 
-              cases=cases.map(sma7);
-              deaths=deaths.map(sma7);
-              recovered=recovered.map(sma7);
-              time=time.map(function(c,i,a){
-                return i>2 ? a[i-3] : null;
-              });
-
               visual({
                 footer: "Simple Moving Average (7 Periods) of Daily Differences",
                 lang: "en",
                 autoheading: true,
-                time: time,
+                time: time.slice(4),
                 grid: {
                   line: 5,
                   shadow: 6,
@@ -108,9 +101,9 @@
                 legend: true,
                 type: "tsline",
                 data: [
-                  { label: "Cases", val: cases },
-                  { label: "Deaths", val: deaths },
-                  { label: "Recovered", val: recovered }
+                  { label: "Cases", val: cases.map(sma7).slice(4) },
+                  { label: "Deaths", val: deaths.map(sma7).slice(4) },
+                  { label: "Recovered", val: recovered.map(sma7).slice(4) }
                 ]
               });
             },
