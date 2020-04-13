@@ -42,7 +42,7 @@
       VisualJS.setup.canvas.position="nw";
       VisualJS.setup.tooltipseparator=" on ";
 
-      fetch("https://corona.lmao.ninja/v2/historical").then(function(resp){
+      fetch("https://corona.lmao.ninja/v2/historical?lastdays=60").then(function(resp){
         resp.json().then(function(data) {
           var
             filtered=data.filter(function(c){

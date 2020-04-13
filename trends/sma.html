@@ -101,7 +101,7 @@
         }
       ;
 
-      fetch("https://corona.lmao.ninja/v2/historical").then(function(resp){
+      fetch("https://corona.lmao.ninja/v2/historical?lastdays=60").then(function(resp){
         resp.json().then(function(data) {
           var
             viz=function(id, indicator,compute){
@@ -132,7 +132,7 @@
                 time: time.map(function(t){
                     var arr=t.split("/");
                     return "20"+arr[2]+"/"+arr[0]+"/"+arr[1];
-                }).slice(-30),
+                }),
                 grid: {
                   line: 5,
                   shadow: 6,
@@ -153,7 +153,7 @@
 
                   return {
                     label: c.province ? c.country.toUpperCase() + ' (' + c.province.toUpperCase() + ')': c.country.toUpperCase(),
-                    val: val.slice(-30)
+                    val: val
                   };
                 })
               });
