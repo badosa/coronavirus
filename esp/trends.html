@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta charset="utf-8" />
+		<title>Real-time Spain COVID-19 Stats</title>
+    <link href="https://visual.js.org/visual.css" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+    <script src="https://visual.js.org/lazyvisualsetup.js"></script>
+		<script src="https://cdn.jsdelivr.net/combine/npm/es6-promise@4.2.8,npm/whatwg-fetch@3.0.0"></script>
+		<script src="https://unpkg.com/jsonstat-toolkit@1.0.8"></script>
+		<style>
+		* {
+			box-sizing: border-box;
+		}
+		body, #visual, #VisualJSTooltip, #visual h1, #visual .legend, #visual .VisualJSfooter p, select {
+			font-family: 'Lato', sans-serif;
+			font-size: 16px;
+		}
+		select {
+			position: absolute;
+			top: 10px;
+			right: 20px;
+			background-color: hsla(240, 100%, 25%, 1);
+			color: #fff;
+		}
+		#input {
+			position: absolute;
+			top: 30%;
+			left: 46px;
+			background-color: #f0f0f0;
+			padding: 8px 14px;
+			border: 1px solid #ccc;
+			font-size: 13px;
+		}
+		.radio {
+			margin: 8px 0;
+		}
+		label {
+			display: block;
+			padding: 2px 0;
+		}
+
+		</style>
+	</head>
+
+	<body>
+		<select></select>
+    <div id="visual" class="visual">Retrieving data...</div>
+
+		<div id="input">
+      <div class="radio">
+        <label><input type="radio" name="ma" value="0" checked /> Datos originales</label>
+        <label><input type="radio" name="ma" value="1" /> Variación diaria MMS7</label>
+      </div>
+    </div>
+
+
+		<script>
+		var ids={
+			"01":"Andalucía",
+			"02":"Aragón",
+			"03":"Asturias",
+			"04":"Baleares",
+			"05":"Canarias",
+			"06":"Cantabria",
+			"07":"Castilla y León",
+			"08":"Castilla-La Mancha",
+			"09":"Cataluña",
+			"10":"C. Valenciana",
+			"11":"Extremadura",
+			"12":"Galicia",
+			"13":"Madrid",
+			"14":"Murcia",
+			"15":"Navarra",
+			"16":"País Vasco",
+			"17":"La Rioja",
+			"18":"Ceuta",
+			"19":"Melilla"
+		};
+
+		function ccaa(e){
+			return ids[e];
+		}
+
+		function sma7(c,i,a){
+			return (i>3 && i+3<a.length)
+				?
+				Math.round((a[i+3]-a[i-4])/7)
+				:
+				null
+			;
+		}
+
+    var
+      pars=(typeof URLSearchParams!=="function") ? null : new URLSearchParams(window.location.search),
+      geo=pars && pars.has("geo") ? pars.get("geo") : "13",
+			ca=ccaa(geo),
+
+			def={
+				geo: ca,
+				ma: false
+			}
+    ;
+
+		VisualJS.setup.canvas.position="nw";
+		VisualJS.setup.tooltipseparator=" en fecha ";
+
+		JSONstat("https://raw.githubusercontent.com/okaberocks/covid19-ccaa/master/etl/data/todos_ccaa_acumulado.json-stat").then(function(json){
+			var
+				viz=function(ca, ma){
+					var
+						time=json.Dimension("fecha", false),
+						cases=json.Data({"ccaa": ca, "Variables": "casos"}, false),
+						deaths=json.Data({"ccaa": ca, "Variables": "fallecidos"}, false)
+					;
+
+					//Moving average
+					if(ma){
+						time=time.slice(4);
+						cases=cases.map(sma7).slice(4);
+						deaths=deaths.map(sma7).slice(4)
+					}
+
+					visual(
+						{
+							footer: "MMS7: Media móvil simple de 7 períodos.",
+							lang: "es",
+							autoheading: true,
+
+							time: time,
+							grid: {
+								line: 5,
+								shadow: 6,
+								point: 0
+							},
+							axis: {
+								x: false
+							},
+							legend: true,
+							type: "tsline",
+							data: [{
+									label: "Casos",
+									val: cases
+								},
+								{
+									label: "Defunciones",
+									val: deaths
+								}
+							]
+						}
+					);
+				},
+				select=function(geo){
+					var
+						html="",
+						id=Object.keys(ids)
+					;
+
+					id.sort();
+					id.forEach(function(c){
+						var selected=(c===geo) ? 'selected': "";
+						html+='<option value="'+c+'" ' + selected + '>'+ids[c]+'</option>';
+					});
+
+					document.querySelector("select").innerHTML=html;
+					document.querySelector("select").addEventListener("change", function() {
+						def.geo=ccaa(this.value);
+						viz(def.geo, def.ma);
+					}, false);
+				}
+			;
+
+			select(geo);
+			viz(def.geo, def.ma);
+
+			document.querySelectorAll("input").forEach(function(e){
+				e.addEventListener("change", function() {
+					def.ma=!!Number(this.value);
+					viz(def.geo, def.ma);
+				}, false);
+			});
+
+		});
+		</script>
+	</body>
+</html>
