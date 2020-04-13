@@ -95,11 +95,12 @@
     var
       pars=(typeof URLSearchParams!=="function") ? null : new URLSearchParams(window.location.search),
       geo=pars && pars.has("geo") ? pars.get("geo") : "13",
+			ma=pars && pars.has("mm") ? !!Number(pars.get("mm")) : false,
 			ca=ccaa(geo),
 
 			def={
-				geo: ca,
-				ma: false
+				geo: geo,
+				ma: ma
 			}
     ;
 
@@ -110,6 +111,8 @@
 			var
 				viz=function(ca, ma){
 					var
+						ca=ccaa(def.geo),
+						ma=def.ma,
 						time=json.Dimension("fecha", false),
 						cases=json.Data({"ccaa": ca, "Variables": "casos"}, false),
 						deaths=json.Data({"ccaa": ca, "Variables": "fallecidos"}, false)
@@ -151,7 +154,7 @@
 						}
 					);
 				},
-				select=function(geo){
+				select=function(){
 					var
 						html="",
 						id=Object.keys(ids)
@@ -159,27 +162,32 @@
 
 					id.sort();
 					id.forEach(function(c){
-						var selected=(c===geo) ? 'selected': "";
+						var selected=(c===def.geo) ? 'selected': "";
 						html+='<option value="'+c+'" ' + selected + '>'+ids[c]+'</option>';
 					});
 
 					document.querySelector("select").innerHTML=html;
 					document.querySelector("select").addEventListener("change", function() {
-						def.geo=ccaa(this.value);
-						viz(def.geo, def.ma);
+						def.geo=this.value;
+						viz();
 					}, false);
+				},
+				radio=function(){
+					var input=document.querySelectorAll("input");
+					input[1].checked=def.ma;
+
+					input.forEach(function(e){
+						e.addEventListener("change", function() {
+							def.ma=!!Number(this.value);
+							viz();
+						}, false);
+					});
 				}
 			;
 
-			select(geo);
-			viz(def.geo, def.ma);
-
-			document.querySelectorAll("input").forEach(function(e){
-				e.addEventListener("change", function() {
-					def.ma=!!Number(this.value);
-					viz(def.geo, def.ma);
-				}, false);
-			});
+			select();
+			radio();
+			viz();
 
 		});
 		</script>
