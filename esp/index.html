@@ -56,8 +56,6 @@
 		}
 
 		JSONstat("https://raw.githubusercontent.com/okaberocks/covid19-ccaa/master/etl/data/casos_ccaa_1_dato.json-stat").then(function(json){
-			console.log(json);
-
 			var data=json.Dimension("ccaa").id.map(ccaa).map(function(e,i){
 				return {
 					id: e,
