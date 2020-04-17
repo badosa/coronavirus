@@ -81,7 +81,7 @@
 			return(states[str]);
 		}
 
-		fetch("https://corona.lmao.ninja/states").then(function(resp){
+		fetch("https://corona.lmao.ninja/v2/states").then(function(resp){
 			resp.json().then(function(data) {
 				visual(
 					{
