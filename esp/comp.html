@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <title>Worldwide Real-time COVID-19 Stats</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      div {
+        text-align: center;
+      }
+      iframe {
+        border: none;
+      }
+      .chart {
+        height: 400px;
+        width: 46%;
+      }
+
+      @media screen and (max-width: 900px) {
+        .chart {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <iframe class="chart" src="trends.html?geo=13&amp;mm=1"></iframe>
+      <iframe class="chart" src="trends.html?geo=09&amp;mm=1"></iframe>
+    </div>
+  </body>
+</html>
